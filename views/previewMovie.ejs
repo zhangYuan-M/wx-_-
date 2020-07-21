@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,shrink-to-fit=no" name="viewport" />
+		<title>预告片首页</title>
+		<link
+			rel="stylesheet"
+			href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"
+			integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk"
+			crossorigin="anonymous"
+		/>
+		<link href="https://cdn.bootcdn.net/ajax/libs/dplayer/1.25.0/DPlayer.min.css" rel="stylesheet" />
+	</head>
+	<!-- rem适配方案 -->
+	<script>
+		;(function () {
+			var styleNode = document.createElement('style')
+			var width = document.documentElement.clientWidth / 32
+			styleNode.innerHTML = 'html{font-size:' + width + 'px!important}'
+			document.head.appendChild(styleNode)
+		})()
+	</script>
+
+	<!-- 内联样式表 -->
+	<style>
+		.card-img-top {
+			height: 27rem;
+			display: block;
+			outline: none;
+		}
+
+		._card {
+			margin-bottom: 2rem;
+			background: #ebebeb;
+		}
+		.item {
+			border-radius: 3rem;
+			overflow: hidden;
+			border: 2px solid gainsboro;
+			box-shadow: 3rem 2rem 3rem #c7c6b0, -2rem -2rem 6rem #d3d1c0;
+		}
+		.container {
+			margin-top: 4.3rem;
+		}
+		.card-text {
+			line-height: 1.8;
+		}
+	</style>
+
+	<body>
+		<!-- 顶部导航 -->
+		<nav class="navbar navbar-dark bg-dark fixed-top">
+			<a class="navbar-brand">预告片电影</a>
+			<form class="form-inline">
+				<button class="btn btn-outline-success my-2 my-sm-0" type="submit">搜索</button>
+			</form>
+		</nav>
+
+		<!-- Vertically centered modal -->
+		<div
+			class="modal fade"
+			id="myModal"
+			tabindex="-1"
+			role="dialog"
+			aria-labelledby="exampleModalCenterTitle"
+			aria-hidden="true"
+		>
+			<div class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content">
+					<!-- 视频 -->
+					<div id="dplayer"></div>
+				</div>
+			</div>
+		</div>
+
+		<!-- 每一项数据 -->
+		<div class="container">
+			<% data.forEach(function(item, index){%>
+			<div class="item _card">
+				<!-- 卡片内容 -->
+				<div class="card">
+					<img src="<%=item['post_img_url']%>" class="card-img-top" alt="..." data="<%=JSON.stringify(data)%>" />
+					<div class="card-body">
+						<h3 class="card-title"><%=item.title%></h3>
+						<p class="card-text">
+							&nbsp;&nbsp;&nbsp;&nbsp;<%=item.styles%>
+						</p>
+						<p class="card-text"><small class="text-muted">2020 年 6月28日 更新</small></p>
+					</div>
+				</div>
+				<!-- 下拉电影详情 -->
+				<div class="accordion" id="accordionExample">
+					<div class="card">
+						<div class="card-header" id="heading<%= index%>">
+							<h2 class="mb-0">
+								<button
+									class="btn btn-link btn-block text-left"
+									type="button"
+									data-toggle="collapse"
+									data-target="#collapse<%= index%>"
+									aria-expanded="false"
+									aria-controls="collapse<%= index%>"
+								>
+									点击查看电影详情
+								</button>
+							</h2>
+						</div>
+
+						<div
+							id="collapse<%= index%>"
+							class="collapse"
+							aria-labelledby="heading<%= index%>"
+							data-parent="#accordionExample"
+						>
+							<div class="card-body">
+								<ul class="list-group">
+									<li class="list-group-item">导演: <%=item.movieName%></li>
+									<li class="list-group-item">电影ID: <%=item.movieId%></li>
+									<li class="list-group-item">主演: <%=item.director%></li>
+									<li class="list-group-item">类型: <%=item.stars%></li>
+									<li class="list-group-item disabled" aria-disabled="true">又名: <%=item.movieName%></li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<% }) %>
+		</div>
+	</body>
+
+	<!-- bootstrap JS -->
+	<script
+		src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+		integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+		crossorigin="anonymous"
+	></script>
+	<script
+		src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+		integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+		crossorigin="anonymous"
+	></script>
+	<script
+		src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"
+		integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+		crossorigin="anonymous"
+	></script>
+
+	<!-- DPlayer -->
+	<script src="https://cdn.bootcdn.net/ajax/libs/dplayer/1.25.0/DPlayer.min.js"></script>
+
+	<!-- 自定义脚本 -->
+	<script>
+		// 视屏播放实例对象
+		let dp = null
+		// 上一次点击的视屏地址
+		let lastVideo = null
+		// 模态框监听消失事件，视屏暂停播放
+		$('#myModal').on('hidden.bs.modal', function () {
+			dp.pause()
+		})
+
+		// 图片点击事件，视屏开始播放
+		$('.card-img-top').click(function (e) {
+			// 获取点击的图片在所有图片的索引
+			const index = $(e.target).index('.card-img-top')
+			let res = $(this).attr('data')
+			res = JSON.parse(res)
+
+			let url = res[index].video_url // 预告片视屏地址
+			let pic = res[index].img_url // 电影的预告片图片封面
+			let id = res[index].movie_id // 不同电影不同ID
+			// 视屏开始播放
+			$('#myModal').modal('show')
+
+			// 如果是第一次点击视频，创建一个视频对象
+			if (!dp) {
+				dp = new DPlayer({
+					container: document.getElementById('dplayer'),
+					loop: true,
+					video: {
+						url,
+						pic,
+						thumbnails: pic
+					},
+					danmaku: {
+						id,
+						api: 'http://3z0c993680.zicp.vip/',
+						maximum: 3000
+					}
+				})
+			}
+			// 如果不是第一次点击视频, 切换视屏源
+			else {
+				if (lastVideo === url) {
+					// 只能是两次点击同一个视屏地址才能 继续播放
+					dp.play()
+				}
+				// 切换视屏地址，弹幕信息
+				dp.switchVideo(
+					{
+						url,
+						pic,
+						thumbnails: pic
+					},
+					{
+						id,
+						api: 'http://3z0c993680.zicp.vip/',
+						maximum: 3000
+					}
+				)
+			}
+
+			// 同步上一次视屏播放的地址
+			lastVideo = url
+		})
+	</script>
+</html>

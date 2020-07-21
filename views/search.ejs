@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+	</head>
+	<body>
+		<button id="search" style="font-size: 1.5rem; margin: 0 auto; display: block; border: 1px solid skyblue;">
+			点击语音识别，查找电影
+		</button>
+		<div class="content"></div>
+	</body>
+	<script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
+	<script src="https://cdn.bootcdn.net/ajax/libs/zepto/1.0rc1/zepto.min.js"></script>
+	<script>
+		/*
+			1、绑定域名
+				- 填写在接口测试号页面的URL，不要填写协议
+			2、引入JS文件
+			3、通过config接口注入权限信息
+				-
+		*/
+		wx.config({
+			debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+			appId: 'wx698b11a605f4fbda', // 必填，公众号的唯一标识
+			timestamp: '<%= timestamp%>', // 必填，生成签名的时间戳
+			nonceStr: '<%= noncestr%>', // 必填，生成签名的随机串
+			signature: '<%= signature%>', // 必填，签名
+			jsApiList: ['onMenuShareQZone', 'startRecord', 'stopRecord', 'translateVoice'] // 必填，需要使用的JS接口列表
+		})
+		wx.ready(function () {
+			// config信息验证后会执行ready方法，所有接口调用都必须在config接口获得结果之后
+			wx.checkJsApi({
+				jsApiList: ['onMenuShareQZone', 'startRecord', 'stopRecord', 'translateVoice'], // 需要检测的JS接口列表
+				success: function (res) {
+					let isRecording = false // 设置变量标志状态
+					$('#search').tap(function () {
+						// 录音中
+						if (!isRecording) {
+							// 点击的时候，开始录音
+							wx.startRecord()
+							this.innerHTML = '录音中... 点击停止录音'
+							isRecording = true
+						}
+						// 结束录音
+						else {
+							this.innerHTML = '点击语音识别，查找电影'
+							wx.stopRecord({
+								success: function (res) {
+									// 会自动上传录音到微信服务器中，会返回一个ID给开发者服务器使用
+									var localId = res.localId
+									// 识别录音
+									wx.translateVoice({
+										localId, // 需要识别的音频的本地Id，由录音相关接口获得
+										isShowProgressTips: 1, // 默认为1，显示进度提示
+										success: function (res) {
+											alert(res.translateResult.replace('。', '')) // 语音识别的结果
+											let word = res.translateResult.replace('。', '')
+											window.location.assign(`https://91mjw.com/?s=${word}`)
+										}
+									})
+
+									// 模拟结果。去豆瓣请求相应的地址数据。查询电影详情 何以为家
+									// const url = `https://api.douban.com/v2/movie/subject/30170448?apikey=0df993c66c0c636e29ecbb5344252a4a&callback=?`
+									// // 豆瓣API不允许跨域，使用JSONP解决
+									// $.getJSON(url, function (data) {
+									// 	console.log(data)
+									// 	const { title, summary, countries, images } = data
+									// 	$('.content').html(`
+									// 		<h1>${title}</h1>
+									// 		<img
+									// 			src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcQcRcH5O_ooZQTdQ6uVZ8IjaqmGlYHw0oDvig&usqp=CAU || ${images.medium}"
+									// 			alt="${title}"
+									// 			style="margin: 0 auto; display: block;"
+									// 		/>
+									// 		<div class="contry" style="line-height: 3; color: #333333; font-size: 1.2rem;">
+									// 			国家:${countries[0]}
+									// 		</div>
+									// 		<div class="summary" style="line-height: 2; color: rgb(97, 97, 97);">
+									// 			${summary}
+									// 		</div>`)
+									// })
+								}
+							})
+							isRecording = false
+						}
+					})
+				},
+				fail(err) {
+					console.log(err)
+				}
+			})
+		})
+		wx.error(function (res) {
+			// config信息验证失败会执行error函数，如签名过期导致验证失败
+			console.log('error in wx.error() 方法')
+		})
+	</script>
+</html>
